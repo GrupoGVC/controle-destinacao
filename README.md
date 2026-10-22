@@ -44,7 +44,7 @@ Não há mês para duplicar: tudo fica na mesma planilha, e o app separa por mê
 ## 4. Colocar o app no GitHub Pages (5 min)
 
 1. No GitHub, crie um repositório, por exemplo `controle-destinacao`. No plano gratuito, o GitHub Pages exige repositório **público**. Não há problema: nenhum dado fica no repositório, só a tela. Sem login, ninguém lê nem altera nada.
-2. Envie os arquivos desta pasta (**Add file › Upload files**): `index.html`, `config.js`, `README.md` e as pastas `apps-script/` e `dados-iniciais/`.
+2. Envie os arquivos desta pasta (**Add file › Upload files**): `index.html`, `config.js`, `README.md` e as pastas `img/` (logos), `apps-script/` e `dados-iniciais/`.
 3. Edite o `config.js` e cole o URL do passo 3 entre as aspas:
    ```js
    window.CONFIG = { API_URL: "https://script.google.com/macros/s/XXXX/exec" };
@@ -104,6 +104,7 @@ A planilha é o banco de dados, então dá para filtrar, montar tabela dinâmica
 ```
 index.html                 app (HTML + CSS + JS, sem dependências)
 config.js                  endereço da API
+img/                       logos Retec e Grupo GVC
 apps-script/Codigo.gs      API da planilha (colar no Apps Script)
 dados-iniciais/…xlsx       base com jan–out/2026 para importar no Drive
 ```

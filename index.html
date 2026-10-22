@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Controle de Destinação Retec</title>
+<link rel="icon" type="image/png" href="img/logo-retec.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..100,500..800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
@@ -11,7 +12,7 @@
 :root{
   --bg:#f5f7f5; --surface:#ffffff; --sunken:#edf1ee; --line:#d8dfda; --line-soft:#e6ebe7;
   --ink:#14211b; --ink-2:#4b5a52; --ink-3:#77857d;
-  --accent:#1d6b52; --accent-ink:#ffffff; --accent-soft:#dcefe6;
+  --accent:#1d6b52; --accent-ink:#ffffff; --accent-soft:#dcefe6; --plate:transparent; --plate-pad:0px;
   --s-dest:#2a78d6; --s-loc:#eb6834; --s-rec:#1baf7a;
   --warn:#a86400; --warn-bg:#fff3dc; --crit:#b42f2f; --crit-bg:#fde8e6; --ok:#1d7a3e; --ok-bg:#e2f4e7;
   --f-display:"Archivo","Arial Narrow",system-ui,sans-serif;
@@ -22,14 +23,14 @@
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
   --bg:#0f1512; --surface:#161e1a; --sunken:#1c2621; --line:#2c3a33; --line-soft:#233029;
   --ink:#e9efeb; --ink-2:#b2c0b8; --ink-3:#83938a;
-  --accent:#4fb08c; --accent-ink:#06130d; --accent-soft:#1d3a2f;
+  --accent:#4fb08c; --accent-ink:#06130d; --accent-soft:#1d3a2f; --plate:#eef3f0; --plate-pad:6px 10px;
   --s-dest:#3987e5; --s-loc:#d95926; --s-rec:#199e70;
   --warn:#e8a43a; --warn-bg:#33270f; --crit:#f07b74; --crit-bg:#3a1a19; --ok:#5cc47f; --ok-bg:#15301f;
   color-scheme:dark}}
 :root[data-theme="dark"]{
   --bg:#0f1512; --surface:#161e1a; --sunken:#1c2621; --line:#2c3a33; --line-soft:#233029;
   --ink:#e9efeb; --ink-2:#b2c0b8; --ink-3:#83938a;
-  --accent:#4fb08c; --accent-ink:#06130d; --accent-soft:#1d3a2f;
+  --accent:#4fb08c; --accent-ink:#06130d; --accent-soft:#1d3a2f; --plate:#eef3f0; --plate-pad:6px 10px;
   --s-dest:#3987e5; --s-loc:#d95926; --s-rec:#199e70;
   --warn:#e8a43a; --warn-bg:#33270f; --crit:#f07b74; --crit-bg:#3a1a19; --ok:#5cc47f; --ok-bg:#15301f;
   color-scheme:dark}
@@ -47,6 +48,16 @@ header.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background
 .brand{display:flex;flex-direction:column;gap:0;margin-right:auto;min-width:0}
 .brand b{font-family:var(--f-display);font-weight:800;font-stretch:80%;font-size:22px;letter-spacing:.01em;line-height:1.1;text-wrap:balance}
 .brand span{font-size:12px;color:var(--ink-3);letter-spacing:.04em;text-transform:uppercase}
+.brand-row{display:flex;align-items:center;gap:14px;margin-right:auto;min-width:0}
+.logos{display:flex;align-items:center;gap:10px;background:var(--plate);padding:var(--plate-pad);border-radius:6px;flex-shrink:0}
+.logos img{display:block;width:auto}
+.logos .l-retec{height:30px}.logos .l-gvc{height:34px}
+.logos i{width:1px;align-self:stretch;background:var(--line);margin:2px 0}
+.brand-row .brand{margin-right:0;padding-left:14px;border-left:1px solid var(--line)}
+.login-logos{display:flex;justify-content:center;align-items:center;gap:22px;margin:28px auto 0;width:max-content;max-width:100%}
+.login-logos .l-retec{height:48px}.login-logos .l-gvc{height:56px}
+.login-logos i{height:44px}
+@media (max-width:560px){.logos .l-retec{height:24px}.logos .l-gvc{height:27px}.brand-row{gap:10px}.brand-row .brand{padding-left:10px}.brand b{font-size:19px}.login-logos .l-retec{height:38px}.login-logos .l-gvc{height:44px}}
 .month{display:flex;align-items:center;gap:4px;background:var(--sunken);border:1px solid var(--line);border-radius:var(--r);padding:3px}
 .month button{border:0;background:transparent;color:var(--ink-2);width:32px;height:32px;border-radius:4px;cursor:pointer;font-size:16px}
 .month button:hover{background:var(--surface);color:var(--ink)}
@@ -150,7 +161,7 @@ td input,td select{padding:5px 8px;font-size:13px}
 <header class="top">
   <div class="wrap">
     <div class="top-row">
-      <div class="brand"><span>Retec · Logística de resíduos</span><b>Controle de Destinação</b></div>
+      <div class="brand-row"><div class="logos" aria-label="Retec · Grupo GVC"><img class="l-retec" src="img/logo-retec.png" alt="Retec"><i></i><img class="l-gvc" src="img/logo-gvc.png" alt="Grupo GVC"></div><div class="brand"><span>Logística de resíduos</span><b>Controle de Destinação</b></div></div>
       <div class="month" role="group" aria-label="Mês de referência">
         <button id="m-prev" aria-label="Mês anterior">‹</button>
         <div class="lbl" id="m-lbl">—</div>
@@ -540,6 +551,7 @@ function mostrarUsuario(){
   $('#u-box').hidden=!ok;$('#btn-atualizar').hidden=!ok;
   if(ok){$('#u-nome').textContent=u.nome;$('#u-nivel').textContent=NIVEL_LBL[u.nivel]||u.nivel;}
   $('#tab-users').hidden=!(ok&&u.nivel==='admin');
+  document.querySelector('.top .logos').hidden=!ok;document.querySelector('.brand-row .brand').style.borderLeft=ok?'':'0';document.querySelector('.brand-row .brand').style.paddingLeft=ok?'':'0';
   document.querySelector('.month').hidden=!ok;document.querySelector('nav.tabs').hidden=!ok;
   if(S.tab==='users'&&!(ok&&u.nivel==='admin'))S.tab='painel';
 }
@@ -591,7 +603,7 @@ function telaLogin(msg,modo,emailPre){
       <div class="fld"><label for="lg-senha2">Repita a senha</label><input id="lg-senha2" type="password" minlength="8" required autocomplete="new-password"></div>
       <div class="row" style="justify-content:space-between"><button class="btn pri" id="lg-btn">Salvar senha e entrar</button><button type="button" class="btn" id="lg-reenviar">Enviar outro código</button></div>
     </form>`;
-  $('#main').innerHTML=`<section class="panel" style="max-width:480px;margin:24px auto 0;width:100%">${corpo}</section>`;
+  $('#main').innerHTML=`<div class="logos login-logos"><img class="l-retec" src="img/logo-retec.png" alt="Retec"><i></i><img class="l-gvc" src="img/logo-gvc.png" alt="Grupo GVC"></div><section class="panel" style="max-width:480px;margin:8px auto 0;width:100%">${corpo}</section>`;
   const f=$('#lg');const btn=$('#lg-btn');
   const pegaUrl=()=>{if(!urlFixa){S.cfg.url=$('#lg-url').value.trim();salvarCfg()}return !!S.cfg.url};
   const ocupado=(b,t)=>{btn.disabled=b;if(t)btn.textContent=t};
