@@ -153,6 +153,62 @@ td input,td select{padding:5px 8px;font-size:13px}
 .confirm{display:inline-flex;gap:6px;align-items:center;font-size:12.5px}
 .kpis{}@media (max-width:900px){.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media (max-width:560px){.kpis{grid-template-columns:1fr}.month .lbl{min-width:120px;font-size:15px}.kpi .v{font-size:23px}.bar{grid-template-columns:minmax(80px,38%) 1fr auto}}
+
+/* ---------- celular ---------- */
+nav.tabs .ic,nav.tabs .t-short{display:none}
+.rt td.full,.rt td.strong-m{}
+@media (max-width:640px){
+  body{font-size:15px}
+  input,select,textarea{font-size:16px}
+  header.top{position:static}
+  .top-row{gap:8px;padding-block:10px 10px;flex-wrap:wrap}
+  .brand-row{flex-basis:100%;gap:10px}
+  .brand span{display:none}
+  .brand{min-width:0}
+  .brand b{font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
+  .top-row>.row{flex-wrap:nowrap;gap:6px!important}
+  #u-box>.sync{display:none}
+  .month{flex:1 1 0;min-width:0}.month .lbl{min-width:0;flex:1;font-size:15px;white-space:nowrap}
+  .logos .l-retec{height:20px}.logos .l-gvc{height:23px}.logos{gap:7px}.brand-row .brand{padding-left:9px}
+  .month button{width:40px;height:36px}
+  .sync span{display:none}
+  #u-nivel{display:none}
+  #u-nome{max-width:84px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px}
+  nav.tabs{position:fixed;left:0;right:0;bottom:0;z-index:15;margin:0;background:var(--surface);border-top:1px solid var(--line);display:flex;gap:2px;overflow:visible;
+    padding:6px max(6px,env(safe-area-inset-right,0px)) calc(6px + env(safe-area-inset-bottom,0px)) max(6px,env(safe-area-inset-left,0px));box-shadow:0 -4px 16px rgba(0,0,0,.06)}
+  nav.tabs button{flex:1 1 0;min-width:0;display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 2px 5px;border-bottom:0;border-radius:10px;font-size:11px;font-weight:600;position:relative}
+  nav.tabs button[aria-selected="true"]{color:var(--accent);background:var(--accent-soft)}
+  nav.tabs .ic{display:block;width:22px;height:22px}
+  nav.tabs .t-long{display:none}nav.tabs .t-short{display:inline}
+  nav.tabs .ct{position:absolute;top:1px;left:calc(50% + 7px);margin:0;font-size:10px;padding:0 5px;line-height:16px}
+  main{padding-block:14px calc(92px + env(safe-area-inset-bottom,0px));gap:14px}
+  .toast{bottom:calc(84px + env(safe-area-inset-bottom,0px));max-width:calc(100% - 32px);text-align:center}
+  .panel{padding:14px}
+  .kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .kpi{padding:12px}.kpi .v{font-size:21px}.kpi .k{font-size:10.5px}.kpi .d{font-size:12px}
+  .form{grid-template-columns:1fr 1fr;gap:10px}
+  .form .full{grid-column:1/-1}
+  .btn{padding:10px 14px}.btn.sm{padding:7px 11px}
+  .filters>*{flex:1 1 100%}
+  .bar{grid-template-columns:minmax(78px,36%) 1fr auto;gap:8px}.bar .val{min-width:0}
+  /* tabelas viram cartões */
+  .rtw{border:0;border-radius:0;overflow:visible;max-height:none!important}
+  table.rt,.rt tbody,.rt tfoot{display:block}
+  .rt thead{display:none}
+  .rt tr{display:grid;grid-template-columns:1fr 1fr;gap:8px 12px;padding:12px;border:1px solid var(--line);border-radius:var(--r);background:var(--surface);margin-bottom:10px}
+  .rt td{display:block;padding:0;border:0;white-space:normal;text-align:left!important;min-width:0;overflow-wrap:anywhere}
+  .rt td::before{content:attr(data-label);display:block;font-size:10.5px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-3);margin-bottom:2px}
+  .rt td[data-label=""]::before{display:none}
+  .rt td.full{grid-column:1/-1}
+  .rt td.strong-m{font-weight:700;font-size:15px}
+  .rt .hide-m{display:none}
+  .rt td input,.rt td select{width:100%!important;text-align:left!important}
+  .rt tfoot tr{background:var(--sunken)}.rt tfoot td{background:transparent;border:0}
+  tbody tr.click:hover td{background:transparent}
+  tbody tr.click:active{background:var(--accent-soft)}
+  .dest-grid{grid-template-columns:1fr}
+  .login-logos{margin-top:12px}
+}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 <script src="config.js"></script>
@@ -170,12 +226,12 @@ td input,td select{padding:5px 8px;font-size:13px}
       <div class="row" style="gap:10px"><div class="sync" id="sync"><i></i><span>Conectando…</span></div><button class="btn sm" id="btn-atualizar" hidden>Atualizar</button><span id="u-box" class="row" style="gap:8px" hidden><span class="sync" style="flex-direction:column;align-items:flex-end;gap:0;line-height:1.2"><b id="u-nome" style="color:var(--ink);font-weight:600"></b><span id="u-nivel"></span></span><button class="btn sm" id="btn-sair">Sair</button></span></div>
     </div>
     <nav class="tabs" role="tablist">
-      <button role="tab" data-tab="painel" aria-selected="true">Painel</button>
-      <button role="tab" data-tab="lanc" aria-selected="false">Lançamentos <span class="ct" id="ct-lanc">0</span></button>
-      <button role="tab" data-tab="frota" aria-selected="false">Locação de veículos</button>
-      <button role="tab" data-tab="dest" aria-selected="false">Destinadores e preços</button>
-      <button role="tab" data-tab="pend" aria-selected="false">Conferência <span class="ct" id="ct-pend">0</span></button>
-      <button role="tab" data-tab="users" aria-selected="false" id="tab-users" hidden>Usuários</button>
+      <button role="tab" data-tab="painel" aria-selected="true"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20V11M10 20V4M16 20v-7M21 20H3"/></svg><span>Painel</span></button>
+      <button role="tab" data-tab="lanc" aria-selected="false"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h11M4 12h11M4 18h7M18 14v6M15 17h6"/></svg><span class="t-long">Lançamentos</span><span class="t-short">Lançar</span> <span class="ct" id="ct-lanc">0</span></button>
+      <button role="tab" data-tab="frota" aria-selected="false"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 6h11v10H2zM13 10h4l3 3v3h-7"/><circle cx="6" cy="18" r="2"/><circle cx="17" cy="18" r="2"/></svg><span class="t-long">Locação de veículos</span><span class="t-short">Frota</span></button>
+      <button role="tab" data-tab="dest" aria-selected="false"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12V4h8l10 10-8 8z"/><circle cx="7.5" cy="8.5" r="1.5"/></svg><span class="t-long">Destinadores e preços</span><span class="t-short">Preços</span></button>
+      <button role="tab" data-tab="pend" aria-selected="false"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M8.5 12l2.5 2.5 4.5-5"/></svg><span class="t-long">Conferência</span><span class="t-short">Conferir</span> <span class="ct" id="ct-pend">0</span></button>
+      <button role="tab" data-tab="users" aria-selected="false" id="tab-users" hidden><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.5 3.4-5.5 6.5-5.5s5.7 2 6.5 5.5M16 4.5a3.5 3.5 0 010 7M18 14.5c1.9.7 3.1 2.6 3.5 5.5"/></svg><span>Usuários</span></button>
     </nav>
   </div>
 </header>
@@ -208,6 +264,11 @@ const S={db:null,mes:null,dest:{},lanc:[],loc:null,locLoaded:false,trend:{},tab:
 function toast(msg){const t=$('#toast');t.textContent=msg;t.hidden=false;clearTimeout(toast.h);toast.h=setTimeout(()=>t.hidden=true,2600)}
 function setSync(on,txt){const s=$('#sync');s.classList.toggle('on',on);s.querySelector('span').textContent=txt}
 
+/* ---------- rótulos das tabelas no celular ---------- */
+function rotularTabelas(){document.querySelectorAll('table.rt').forEach(t=>{const hs=[...t.querySelectorAll('thead th')].map(th=>th.textContent.trim());
+  t.querySelectorAll('tbody tr,tfoot tr').forEach(tr=>{let i=0;[...tr.children].forEach(td=>{const sp=+td.colSpan||1;if(!td.hasAttribute('data-label'))td.setAttribute('data-label',sp>1?'':(hs[i]||''));i+=sp})})})}
+new MutationObserver(rotularTabelas).observe(document.getElementById('main'),{childList:true,subtree:true});
+{let rz,lw=innerWidth;addEventListener('resize',()=>{clearTimeout(rz);rz=setTimeout(()=>{if(Math.abs(innerWidth-lw)>40&&S.ready&&S.tab==='painel'){lw=innerWidth;render()}},250)})}
 /* ---------- tooltip ---------- */
 document.addEventListener('pointermove',e=>{const el=e.target.closest('[data-tip]');const tip=$('#tip');
   if(!el){tip.hidden=true;return}tip.textContent=el.dataset.tip;tip.hidden=false;
@@ -271,10 +332,10 @@ function trendSvg(){
   function pick(a){return{dest:a.custo,loc:a.loc,rec:a.receita}}
   const max=Math.max(1,...data.flatMap(d=>[d.dest,d.loc,d.rec]));
   const step=niceStep(max/4);const top=Math.ceil(max/step)*step;
-  const W=760,H=230,L=64,B=28,Tp=10,gw=(W-L-8)/6,bw=Math.min(22,(gw-18)/3);
+  const cw=((document.querySelector('#main')||{}).clientWidth||800)-34;const W=Math.max(300,Math.min(760,cw)),H=W<500?200:230,L=W<500?40:64,B=28,Tp=10,gw=(W-L-8)/6,bw=Math.max(6,Math.min(22,(gw-14)/3));
   const y=v=>Tp+(H-Tp-B)*(1-v/top);
-  let s=`<svg viewBox="0 0 ${W} ${H}" width="100%" style="min-width:520px" role="img" aria-label="Custos e receita dos últimos 6 meses">`;
-  for(let v=0;v<=top+1e-9;v+=step){s+=`<line x1="${L}" x2="${W-8}" y1="${y(v)}" y2="${y(v)}" stroke="var(--line-soft)"/><text x="${L-8}" y="${y(v)+4}" text-anchor="end">${v>=1000?N(v/1000)+' mil':N(v)}</text>`}
+  let s=`<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Custos e receita dos últimos 6 meses">`;
+  for(let v=0;v<=top+1e-9;v+=step){s+=`<line x1="${L}" x2="${W-8}" y1="${y(v)}" y2="${y(v)}" stroke="var(--line-soft)"/><text x="${L-6}" y="${y(v)+4}" text-anchor="end">${v>=1000?N(v/1000)+(W<500?'k':' mil'):N(v)}</text>`}
   data.forEach((d,i)=>{const x0=L+gw*i+(gw-bw*3-4)/2;const tip=`${mesLbl(d.m)}\nDestinação: ${R(d.dest)}\nLocação: ${R(d.loc)}\nReceita recicláveis: ${R(d.rec)}\nCusto líquido: ${R(d.dest+d.loc-d.rec)}`;
     s+=`<g data-tip="${esc(tip)}"><rect x="${L+gw*i}" y="${Tp}" width="${gw}" height="${H-Tp-B}" fill="transparent"/>`;
     [['dest','--s-dest'],['loc','--s-loc'],['rec','--s-rec']].forEach(([k,c],j)=>{const v=d[k]||0;const h=Math.max(v?2:0,(H-Tp-B)-(y(v)-Tp));const x=x0+j*(bw+2);const yy=H-B-h;
@@ -328,8 +389,8 @@ function renderPainel(){
 
   <section class="panel">
     <div class="panel-h"><div><h2>Uso da frota alugada</h2><p class="sub">Viagens de descarte lançadas por placa alugada. Custo por viagem = aluguel ÷ viagens.</p></div><button class="btn sm" data-go="frota">Editar frota do mês</button></div>
-    ${vs.length?`<div class="tbl-wrap"><table><thead><tr><th>Placa</th><th>Tipo</th><th>Fornecedor</th><th class="num">Aluguel</th><th class="num">Viagens</th><th class="num">kg levados</th><th class="num">R$/viagem</th><th></th></tr></thead><tbody>
-    ${vs.map(v=>{const p=a.byPlaca[String(v.placa).toUpperCase()];const n=p?p.mtr.size:0;return `<tr><td class="mono">${esc(v.placa)}</td><td>${esc(v.tipo)}</td><td>${esc(v.fornecedor)}</td><td class="num">${R(v.valor)}</td><td class="num">${n}</td><td class="num">${p?N(p.kg):'—'}</td><td class="num">${n?R((+v.valor||0)/n):'—'}</td><td>${n?'':'<span class="pill warn">sem viagem lançada</span>'}</td></tr>`}).join('')}
+    ${vs.length?`<div class="tbl-wrap rtw"><table class="rt"><thead><tr><th>Placa</th><th>Tipo</th><th>Fornecedor</th><th class="num">Aluguel</th><th class="num">Viagens</th><th class="num">kg levados</th><th class="num">R$/viagem</th><th></th></tr></thead><tbody>
+    ${vs.map(v=>{const p=a.byPlaca[String(v.placa).toUpperCase()];const n=p?p.mtr.size:0;return `<tr><td class="mono">${esc(v.placa)}</td><td>${esc(v.tipo)}</td><td>${esc(v.fornecedor)}</td><td class="num">${R(v.valor)}</td><td class="num">${n}</td><td class="num">${p?N(p.kg):'—'}</td><td class="num">${n?R((+v.valor||0)/n):'—'}</td><td class="${n?'hide-m':'full'}">${n?'':'<span class="pill warn">sem viagem lançada</span>'}</td></tr>`}).join('')}
     </tbody><tfoot><tr><td colspan="3">${vs.length} itens</td><td class="num">${R(a.loc)}</td><td class="num"></td><td></td><td></td><td></td></tr></tfoot></table></div>`:`<div class="empty">Nenhum veículo cadastrado para ${esc(mesLbl(S.mes))}. <button class="btn sm" data-go="frota">Cadastrar frota</button></div>`}
   </section>`;
 }
@@ -356,12 +417,12 @@ function renderLanc(){
     ${S.readOnly?'<div class="notice">Você tem acesso só de leitura. Peça acesso de Contribuidor ao dono para lançar.</div>':`
     <form id="f" class="form" autocomplete="off">
       <div class="fld"><label for="f-data">Data</label><input type="date" id="f-data" value="${esc(e.data||defaultDate())}"></div>
-      <div class="fld"><label for="f-dest">Destinador</label><select id="f-dest" required>${destOptions(e.destinador,'Escolha…')}</select></div>
-      <div class="fld"><label for="f-res">Resíduo / material</label><input id="f-res" list="dl-res" value="${esc(e.residuo||'')}" required><datalist id="dl-res"></datalist></div>
+      <div class="fld full"><label for="f-dest">Destinador</label><select id="f-dest" required>${destOptions(e.destinador,'Escolha…')}</select></div>
+      <div class="fld full"><label for="f-res">Resíduo / material</label><input id="f-res" list="dl-res" value="${esc(e.residuo||'')}" required><datalist id="dl-res"></datalist></div>
       <div class="fld"><label for="f-mtr">Nº MTR</label><input id="f-mtr" class="mono" inputmode="numeric" value="${esc(e.mtr||'')}"><div class="hint" id="h-mtr"></div></div>
       <div class="fld"><label for="f-ticket">Ticket (opcional)</label><input id="f-ticket" class="mono" value="${esc(e.ticket||'')}"></div>
-      <div class="fld"><label for="f-ger">Gerador</label><input id="f-ger" list="dl-ger" value="${esc(e.gerador||'')}"><datalist id="dl-ger">${geradores.map(g=>`<option value="${esc(g)}">`).join('')}</datalist></div>
-      <div class="fld"><label for="f-orig">Local de origem</label><input id="f-orig" list="dl-orig" value="${esc(e.origem||'')}"><datalist id="dl-orig">${origens.map(g=>`<option value="${esc(g)}">`).join('')}</datalist></div>
+      <div class="fld full"><label for="f-ger">Gerador</label><input id="f-ger" list="dl-ger" value="${esc(e.gerador||'')}"><datalist id="dl-ger">${geradores.map(g=>`<option value="${esc(g)}">`).join('')}</datalist></div>
+      <div class="fld full"><label for="f-orig">Local de origem</label><input id="f-orig" list="dl-orig" value="${esc(e.origem||'')}"><datalist id="dl-orig">${origens.map(g=>`<option value="${esc(g)}">`).join('')}</datalist></div>
       <div class="fld"><label for="f-placa">Placa</label><input id="f-placa" class="mono" list="dl-placa" value="${esc(e.placa||'')}"><datalist id="dl-placa">${placas.map(g=>`<option value="${esc(g)}">`).join('')}</datalist></div>
       <div class="fld"><label for="f-transp">Transportadora</label><input id="f-transp" value="${esc(e.transportadora||'RETEC')}"></div>
       <div class="fld"><label for="f-kg">Quantidade (kg)</label><input id="f-kg" type="number" step="any" min="0" inputmode="decimal" value="${esc(e.kg??'')}"></div>
@@ -382,8 +443,8 @@ function renderLanc(){
       <select id="flt-res" aria-label="Filtrar resíduo"><option value="">Todos os resíduos</option>${resSet.map(r=>`<option ${r===S.f.res?'selected':''}>${esc(r)}</option>`).join('')}</select>
       <input id="flt-q" type="search" placeholder="Buscar MTR, gerador, placa…" value="${esc(S.f.q)}" aria-label="Buscar">
     </div>
-    ${lst.length?`<div class="tbl-wrap" style="max-height:620px"><table><thead><tr><th>Data</th><th>MTR</th><th>Destinador</th><th>Gerador</th><th>Origem</th><th>Resíduo</th><th>Placa</th><th class="num">kg</th><th class="num">R$/kg</th><th class="num">Valor</th></tr></thead><tbody>
-    ${lst.map(l=>{const t=tipoDe(l.destinador);return `<tr class="click" data-id="${esc(l._id)}"><td>${fmtData(l.data)}</td><td class="mono">${esc(l.mtr||'—')}</td><td><span class="pill ${t}">${esc(nomeDe(l.destinador))}</span></td><td>${esc(l.gerador)}</td><td>${esc(l.origem)}</td><td>${esc(l.residuo)}</td><td class="mono">${esc(l.placa)}</td><td class="num">${l.kg!=null&&l.kg!==''?N(l.kg):'—'}</td><td class="num">${l.valorFixo?'fechado':N(l.preco,3)}</td><td class="num">${t==='receita'?'+ ':''}${R(l.valor)}</td></tr>`}).join('')}
+    ${lst.length?`<div class="tbl-wrap rtw" style="max-height:620px"><table class="rt"><thead><tr><th>Data</th><th>MTR</th><th>Destinador</th><th>Gerador</th><th class="hide-m">Origem</th><th>Resíduo</th><th>Placa</th><th class="num">kg</th><th class="num hide-m">R$/kg</th><th class="num">Valor</th></tr></thead><tbody>
+    ${lst.map(l=>{const t=tipoDe(l.destinador);return `<tr class="click" data-id="${esc(l._id)}"><td>${fmtData(l.data)}</td><td class="mono">${esc(l.mtr||'—')}</td><td class="full"><span class="pill ${t}">${esc(nomeDe(l.destinador))}</span></td><td>${esc(l.gerador)}</td><td class="hide-m">${esc(l.origem)}</td><td>${esc(l.residuo)}</td><td class="mono">${esc(l.placa)}</td><td class="num">${l.kg!=null&&l.kg!==''?N(l.kg):'—'}</td><td class="num hide-m">${l.valorFixo?'fechado':N(l.preco,3)}</td><td class="num strong-m">${t==='receita'?'+ ':''}${R(l.valor)}</td></tr>`}).join('')}
     </tbody></table></div>`:`<div class="empty">${S.lanc.length?'Nenhum lançamento com esses filtros.':'Nenhum lançamento em '+esc(mesLbl(S.mes))+'. Use o formulário acima para lançar a primeira viagem.'}</div>`}
   </section>`;
   bindLancForm();
@@ -450,14 +511,14 @@ function renderFrota(){
   $('#main').innerHTML=`<section class="panel">
     <div class="panel-h"><div><h2>Locação de veículos · ${esc(mesLbl(S.mes))}</h2><p class="sub">Um cadastro por mês. Para começar um mês novo, copie a frota do mês anterior e ajuste só o que mudou.</p></div>
       <div class="row">${!d.length?`<button class="btn" id="loc-copy">Copiar frota de ${esc(mesLbl(addMes(S.mes,-1)))}</button>`:''}${S.readOnly?'':`<button class="btn" id="loc-add">+ Veículo</button><button class="btn pri" id="loc-save" ${dirty?'':'disabled'}>Salvar frota</button>`}</div></div>
-    ${d.length?`<div class="tbl-wrap"><table><thead><tr><th>Tipo</th><th>Placa / ativo</th><th>Fornecedor</th><th class="num">Valor no mês (R$)</th><th class="num">Viagens</th><th class="num">R$/viagem</th><th></th></tr></thead><tbody>
+    ${d.length?`<div class="tbl-wrap rtw"><table class="rt"><thead><tr><th>Tipo</th><th>Placa / ativo</th><th>Fornecedor</th><th class="num">Valor no mês (R$)</th><th class="num">Viagens</th><th class="num">R$/viagem</th><th></th></tr></thead><tbody>
     ${d.map((v,i)=>{const p=a.byPlaca[String(v.placa).toUpperCase()];const n=p?p.mtr.size:0;return `<tr>
       <td><input data-i="${i}" data-k="tipo" value="${esc(v.tipo)}" style="width:130px" aria-label="Tipo"></td>
       <td><input data-i="${i}" data-k="placa" class="mono" value="${esc(v.placa)}" style="width:120px" aria-label="Placa"></td>
       <td><input data-i="${i}" data-k="fornecedor" value="${esc(v.fornecedor)}" style="width:150px" aria-label="Fornecedor"></td>
       <td class="num"><input data-i="${i}" data-k="valor" type="number" step="any" value="${esc(v.valor)}" style="width:120px;text-align:right" aria-label="Valor"></td>
       <td class="num">${n}</td><td class="num">${n?R((+v.valor||0)/n):'—'}</td>
-      <td>${S.readOnly?'':`<button class="btn sm danger" data-rm="${i}" aria-label="Remover">Remover</button>`}</td></tr>`}).join('')}
+      <td class="full">${S.readOnly?'':`<button class="btn sm danger" data-rm="${i}" aria-label="Remover">Remover</button>`}</td></tr>`}).join('')}
     </tbody><tfoot><tr><td colspan="3">${d.length} itens${dirty?' · alterações não salvas':''}</td><td class="num">${R(a.loc)}</td><td></td><td></td><td></td></tr></tfoot></table></div>`:
     `<div class="empty">Nenhum veículo cadastrado para este mês.</div>`}
   </section>`;
@@ -639,20 +700,20 @@ function renderUsers(){
   $('#main').innerHTML=`<section class="panel">
     <div class="panel-h"><div><h2>Usuários e alçadas</h2><p class="sub">Leitor só vê. Editor lança e altera. Administrador também cadastra usuários. Mudanças valem na hora, inclusive para quem já está conectado.</p></div></div>
     <form id="nu" class="form" style="margin-bottom:16px;align-items:end">
-      <div class="fld"><label for="nu-email">E-mail da empresa</label><input id="nu-email" type="email" required></div>
-      <div class="fld"><label for="nu-nome">Nome</label><input id="nu-nome" required></div>
+      <div class="fld full"><label for="nu-email">E-mail da empresa</label><input id="nu-email" type="email" required></div>
+      <div class="fld full"><label for="nu-nome">Nome</label><input id="nu-nome" required></div>
       <div class="fld"><label for="nu-nivel">Alçada</label><select id="nu-nivel">${opt('editor')}</select></div>
       <div class="fld"><button class="btn pri" id="nu-btn">Cadastrar usuário</button></div>
     </form>
-    <div class="tbl-wrap"><table><thead><tr><th>Nome</th><th>E-mail</th><th>Alçada</th><th>Ativo</th><th>Senha</th><th>Último acesso</th><th></th></tr></thead><tbody>
+    <div class="tbl-wrap rtw"><table class="rt"><thead><tr><th>Nome</th><th>E-mail</th><th>Alçada</th><th>Ativo</th><th>Senha</th><th>Último acesso</th><th></th></tr></thead><tbody>
     ${us.map((u,i)=>`<tr data-email="${esc(u.email)}"${u.ativo?'':' style="opacity:.55"'}>
       <td><input data-k="nome" value="${esc(u.nome)}" style="width:170px" aria-label="Nome"></td>
-      <td class="mono">${esc(u.email)}</td>
+      <td class="mono full">${esc(u.email)}</td>
       <td><select data-k="nivel" aria-label="Alçada" style="width:auto">${opt(u.nivel)}</select></td>
       <td><select data-k="ativo" aria-label="Ativo" style="width:auto"><option value="1" ${u.ativo?'selected':''}>Sim</option><option value="0" ${u.ativo?'':'selected'}>Não</option></select></td>
       <td>${u.temSenha?'<span class="pill ok">criada</span>':'<span class="pill warn">aguardando 1º acesso</span>'}</td>
       <td>${esc(u.ultimoAcesso||'—')}</td>
-      <td><div class="row" style="flex-wrap:nowrap;gap:6px"><button class="btn sm pri" data-salvar hidden>Salvar</button>${u.temSenha?'<span data-rz><button class="btn sm" data-reset>Apagar senha</button></span>':''}</div></td></tr>`).join('')}
+      <td class="full"><div class="row" style="flex-wrap:nowrap;gap:6px"><button class="btn sm pri" data-salvar hidden>Salvar</button>${u.temSenha?'<span data-rz><button class="btn sm" data-reset>Apagar senha</button></span>':''}</div></td></tr>`).join('')}
     </tbody></table></div>
     <p class="sub" style="margin-top:12px">Depois de cadastrar, mande para a pessoa o link do app. Ela clica em "Primeiro acesso", recebe um código no e-mail e cria a própria senha. "Apagar senha" desconecta a pessoa e faz ela criar uma senha nova.</p>
   </section>`;
