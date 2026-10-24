@@ -162,6 +162,16 @@ td input,td select{padding:5px 8px;font-size:13px}
 .scan-box{background:var(--surface);border-radius:12px;padding:16px;width:min(100%,480px);display:flex;flex-direction:column;gap:12px}
 #scan-cam{width:100%;min-height:220px;background:#000;border-radius:8px;overflow:hidden}
 #scan-cam video{width:100%!important;display:block;border-radius:8px}
+/* tipo de negócio */
+.seg{display:inline-flex;background:var(--sunken);border:1px solid var(--line);border-radius:8px;padding:3px;gap:2px}
+.seg button,.seg label{border:0;background:transparent;color:var(--ink-2);font:600 13px var(--f-body);padding:7px 14px;border-radius:6px;cursor:pointer;white-space:nowrap}
+.seg button[aria-pressed="true"],.seg input:checked+label{background:var(--surface);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.12)}
+.seg input{position:absolute;opacity:0;pointer-events:none}
+.seg input:focus-visible+label{outline:2px solid var(--accent);outline-offset:1px}
+.pill.neg-rss{background:color-mix(in srgb,var(--s-loc) 16%,transparent);color:var(--s-loc)}
+.pill.neg-ind{background:color-mix(in srgb,var(--s-dest) 15%,transparent);color:var(--s-dest)}
+.pill.neg-none{background:var(--warn-bg);color:var(--warn)}
+.bulk{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:10px 12px;border:1px dashed var(--line);border-radius:var(--r);margin-bottom:12px;font-size:13px;color:var(--ink-2)}
 /* ---------- celular ---------- */
 nav.tabs .ic,nav.tabs .t-short{display:none}
 .rt td.full,.rt td.strong-m{}
@@ -276,7 +286,7 @@ const fmtData=d=>d?d.split('-').reverse().slice(0,2).join('/'):'—';
 const today=new Date();const hoje=today.getFullYear()+'-'+String(today.getMonth()+1).padStart(2,'0')+'-'+String(today.getDate()).padStart(2,'0');
 
 const S={db:null,mes:null,dest:{},lanc:[],loc:null,locLoaded:false,trend:{},tab:'painel',edit:null,
-  f:{dest:'',res:'',q:''},readOnly:false,unsubL:null,unsubLoc:null,locDraft:null,confirmDel:null};
+  f:{dest:'',res:'',q:'',neg:''},neg:'',readOnly:false,unsubL:null,unsubLoc:null,locDraft:null,confirmDel:null};
 
 function toast(msg){const t=$('#toast');t.textContent=msg;t.hidden=false;clearTimeout(toast.h);toast.h=setTimeout(()=>t.hidden=true,2600)}
 function setSync(on,txt){const s=$('#sync');s.classList.toggle('on',on);s.querySelector('span').textContent=txt}
@@ -366,6 +376,7 @@ function pendencias(lanc){
     out.push({sev:'warn',tit:`${zero.length} destinação(ões) com valor zerado`,x:Object.entries(g).map(([d,kg])=>`${nomeDe(d)}: ${N(kg)} kg`).join('; ')+'. Se a destinação é gratuita, ok. Se não, falta cadastrar o preço.',ids:zero.map(l=>l._id)})}
   const foraMes=lanc.filter(l=>l.data&&l.mes&&l.data.slice(0,7)!==l.mes);if(foraMes.length)out.push({sev:'crit',tit:`${foraMes.length} lançamento(s) com data fora do mês`,x:foraMes.map(l=>`${l.mtr||'s/ MTR'} com data ${l.data.split('-').reverse().join('/')} (${nomeDe(l.destinador)})`).join('; ')+'. Provável erro de digitação.',ids:foraMes.map(l=>l._id)});
   const semData=lanc.filter(l=>!l.data);if(semData.length)out.push({sev:'warn',tit:`${semData.length} lançamento(s) sem data`,x:semData.map(l=>`${nomeDe(l.destinador)} · ${l.residuo||''} · ${N(l.kg)} kg`).join('; '),ids:semData.map(l=>l._id)});
+  const semNeg=lanc.filter(l=>!l.negocio);if(semNeg.length)out.push({sev:'warn',tit:`${semNeg.length} lançamento(s) sem tipo de negócio (RSS ou Industrial)`,x:'Sem essa informação o lançamento não entra na separação por área. Na aba Lançamentos, filtre por "Sem tipo" para classificar vários de uma vez.',ids:semNeg.map(l=>l._id)});
   const semPlaca=lanc.filter(l=>!l.placa);if(semPlaca.length)out.push({sev:'warn',tit:`${semPlaca.length} lançamento(s) sem placa`,x:'Sem placa não dá para medir o uso da frota alugada.',ids:semPlaca.map(l=>l._id)});
   const vs=(S.loc&&S.loc.veiculos)||[];const usadas=new Set(lanc.map(l=>l.placa));
   const ociosos=vs.filter(v=>!usadas.has(String(v.placa).toUpperCase())&&/^[A-Z]{3}\d[A-Z0-9]\d{2}$/.test(String(v.placa).toUpperCase()));
@@ -373,6 +384,9 @@ function pendencias(lanc){
   return out;
 }
 
+const negPill=n=>n==='RSS'?'<span class="pill neg-rss">RSS</span>':n==='Industrial'?'<span class="pill neg-ind">Industrial</span>':'<span class="pill neg-none">sem tipo</span>';
+function bindNeg(){document.querySelectorAll('[data-neg]').forEach(b=>b.onclick=()=>{S.neg=b.dataset.neg;renderPainel();bindNeg()});
+  document.querySelectorAll('[data-negsel]').forEach(tr=>tr.onclick=()=>{const n=tr.dataset.negsel;if(n){S.neg=n;renderPainel();bindNeg()}else{S.f={dest:'',res:'',q:'',neg:'none'};setTab('lanc')}})}
 /* ---------- render ---------- */
 function bars(rows,color,fmt,tipFn){
   if(!rows.length)return '<div class="empty">Nada lançado neste mês.</div>';
@@ -385,7 +399,7 @@ function delta(cur,prev,good){ // good: 'down' means queda é boa
 }
 function trendSvg(){
   const ms=[];for(let i=5;i>=0;i--)ms.push(addMes(S.mes,-i));
-  const data=ms.map(m=>m===S.mes?{m,...pick(agg(S.lanc,S.loc))}:{m,...(S.trend[m]||{dest:0,loc:0,rec:0,pend:true})});
+  const data=ms.map(m=>({m,...pick(agg(S.all.filter(l=>l.mes===m&&(!S.neg||l.negocio===S.neg)),S.neg?null:(S.locs[m]?{veiculos:S.locs[m]}:null)))}));
   function pick(a){return{dest:a.custo,loc:a.loc,rec:a.receita}}
   const max=Math.max(1,...data.flatMap(d=>[d.dest,d.loc,d.rec]));
   const step=niceStep(max/4);const top=Math.ceil(max/step)*step;
@@ -404,7 +418,10 @@ function trendSvg(){
 function niceStep(x){const p=Math.pow(10,Math.floor(Math.log10(x||1)));const f=x/p;return (f<=1?1:f<=2?2:f<=5?5:10)*p}
 
 function renderPainel(){
-  const a=agg(S.lanc,S.loc);const prevM=addMes(S.mes,-1);const pv=S.trend[prevM];
+  const lancP=S.neg?S.lanc.filter(l=>l.negocio===S.neg):S.lanc;
+  const a=agg(lancP,S.neg?null:S.loc);const prevM=addMes(S.mes,-1);
+  const pa=agg(S.all.filter(l=>l.mes===prevM&&(!S.neg||l.negocio===S.neg)),S.neg?null:(S.locs[prevM]?{veiculos:S.locs[prevM]}:null));const pv={dest:pa.custo,loc:pa.loc,rec:pa.receita};
+  const porNeg=['RSS','Industrial',''].map(n=>{const x=agg(S.lanc.filter(l=>(l.negocio||'')===n),null);return{n,x}}).filter(r=>r.n||r.x.viagens);
   const pend=pendencias(S.lanc);
   const destRows=Object.entries(a.byDest).filter(([,d])=>d.tipo==='custo').map(([id,d])=>({n:nomeDe(id),v:d.v,kg:d.kg,c:d.n})).sort((x,y)=>y.v-x.v);
   const recRows=Object.entries(a.byDest).filter(([,d])=>d.tipo==='receita').map(([id,d])=>({n:nomeDe(id),v:d.v,kg:d.kg,c:d.n})).sort((x,y)=>y.v-x.v);
@@ -416,17 +433,28 @@ function renderPainel(){
   const proprio=gerRows.find(r=>r.n==='RETEC');
   $('#main').innerHTML=`
   ${pend.length?`<div class="al ${pend.some(p=>p.sev==='crit')?'crit':'warn'}" style="cursor:pointer" data-go="pend"><span class="pill ${pend.some(p=>p.sev==='crit')?'crit':'warn'}">${pend.length} ponto(s)</span><b>Há lançamentos para conferir antes de fechar ${esc(mesLbl(S.mes))}</b><div class="x">${esc(pend.slice(0,3).map(p=>p.tit).join(' · '))}${pend.length>3?' …':''}</div></div>`:''}
+  <div class="row" style="justify-content:space-between;gap:10px">
+    <div class="seg" role="group" aria-label="Filtrar por tipo de negócio">${[['','Todos'],['RSS','RSS'],['Industrial','Industrial']].map(([v,t])=>`<button type="button" data-neg="${v}" aria-pressed="${S.neg===v}">${t}</button>`).join('')}</div>
+    ${S.neg?`<span class="sub" style="margin:0">Mostrando só lançamentos <b>${esc(S.neg)}</b>. A locação de veículos não se divide por negócio e fica fora desta visão.</span>`:''}
+  </div>
   <section class="kpis">
     <div class="kpi"><div class="k"><i style="background:var(--s-dest)"></i>Custo de destinação</div><div class="v">${R0(a.custo)}</div><div class="d">${T(a.kgC)} · ${R(a.custoT)}/t ${delta(a.custo,pv?.dest,'down')}</div></div>
-    <div class="kpi"><div class="k"><i style="background:var(--s-loc)"></i>Locação de veículos</div><div class="v">${R0(a.loc)}</div><div class="d">${a.nVei} ativo(s) ${delta(a.loc,pv?.loc,'down')}</div></div>
+    <div class="kpi"><div class="k"><i style="background:var(--s-loc)"></i>Locação de veículos</div><div class="v">${S.neg?'—':R0(a.loc)}</div><div class="d">${S.neg?'não se divide por negócio':a.nVei+' ativo(s) '+delta(a.loc,pv?.loc,'down')}</div></div>
     <div class="kpi"><div class="k"><i style="background:var(--s-rec)"></i>Receita de recicláveis</div><div class="v">${R0(a.receita)}</div><div class="d">${T(a.kgR)} vendidos ${delta(a.receita,pv?.rec,'up')}</div></div>
-    <div class="kpi net"><div class="k">Custo líquido do mês</div><div class="v">${R0(a.total)}</div><div class="d">destinação + locação − recicláveis</div></div>
-    <div class="kpi"><div class="k">Viagens (MTRs)</div><div class="v">${N(a.viagens)}</div><div class="d">${a.viagens?R(a.loc/a.viagens)+' de locação por viagem':'—'}</div></div>
+    <div class="kpi net"><div class="k">Custo líquido ${S.neg?esc(S.neg):'do mês'}</div><div class="v">${R0(a.total)}</div><div class="d">${S.neg?'destinação − recicláveis':'destinação + locação − recicláveis'}</div></div>
+    <div class="kpi"><div class="k">Viagens (MTRs)</div><div class="v">${N(a.viagens)}</div><div class="d">${S.neg?'viagens '+esc(S.neg):a.viagens?R(a.loc/a.viagens)+' de locação por viagem':'—'}</div></div>
     <div class="kpi"><div class="k">Taxa de reciclagem</div><div class="v">${N(a.taxaRec*100,1)}%</div><div class="d">kg reciclável ÷ kg total destinado</div></div>
   </section>
 
   <section class="panel">
-    <div class="panel-h"><div><h2>Últimos 6 meses</h2><p class="sub">Passe o mouse sobre o mês para ver os valores</p></div>
+    <div class="panel-h"><div><h2>Por tipo de negócio</h2><p class="sub">RSS e Industrial em ${esc(mesLbl(S.mes))}. A locação de veículos fica fora desta divisão.</p></div></div>
+    <div class="tbl-wrap rtw"><table class="rt"><thead><tr><th>Tipo</th><th class="num">Destinação</th><th class="num">Peso destinado</th><th class="num">R$/t</th><th class="num">Viagens</th><th class="num">Recicláveis</th><th class="num">Custo líquido</th></tr></thead><tbody>
+    ${porNeg.map(({n,x})=>`<tr class="click" data-negsel="${esc(n)}"><td class="full">${negPill(n)}</td><td class="num">${R0(x.custo)}</td><td class="num">${T(x.kgC)}</td><td class="num">${x.kgC?R(x.custoT):'—'}</td><td class="num">${N(x.viagens)}</td><td class="num">${R0(x.receita)}</td><td class="num strong-m">${R0(x.custo-x.receita)}</td></tr>`).join('')}
+    </tbody></table></div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-h"><div><h2>Últimos 6 meses${S.neg?' · '+esc(S.neg):''}</h2><p class="sub">Passe o mouse sobre o mês para ver os valores</p></div>
       <div class="legend"><span><i style="background:var(--s-dest)"></i>Destinação</span><span><i style="background:var(--s-loc)"></i>Locação</span><span><i style="background:var(--s-rec)"></i>Receita recicláveis</span></div></div>
     <div class="chart-box">${trendSvg()}</div>
   </section>
@@ -454,7 +482,7 @@ function renderPainel(){
 
 function lancFiltrados(){
   const q=S.f.q.trim().toUpperCase();
-  return S.lanc.filter(l=>(!S.f.dest||l.destinador===S.f.dest)&&(!S.f.res||l.residuo===S.f.res)&&(!q||[l.mtr,l.gerador,l.placa,l.origem,l.ticket].some(x=>String(x||'').toUpperCase().includes(q))))
+  return S.lanc.filter(l=>(!S.f.dest||l.destinador===S.f.dest)&&(!S.f.res||l.residuo===S.f.res)&&(!S.f.neg||(S.f.neg==='none'?!l.negocio:l.negocio===S.f.neg))&&(!q||[l.mtr,l.gerador,l.placa,l.origem,l.ticket].some(x=>String(x||'').toUpperCase().includes(q))))
     .sort((a,b)=>(a.data||'9999').localeCompare(b.data||'9999')||nomeDe(a.destinador).localeCompare(nomeDe(b.destinador)));
 }
 function destOptions(sel,blank){const ds=Object.entries(S.dest).sort((a,b)=>a[1].nome.localeCompare(b[1].nome));
@@ -473,6 +501,7 @@ function renderLanc(){
       ${isEdit?'<button class="btn sm" id="f-cancel">Cancelar edição</button>':''}</div>
     ${S.readOnly?'<div class="notice">Você tem acesso só de leitura. Peça acesso de Contribuidor ao dono para lançar.</div>':`
     <form id="f" class="form" autocomplete="off">
+      <div class="fld full"><span class="lbl" id="lbl-neg" style="font-size:11.5px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-3)">Tipo de negócio</span><div class="seg" role="radiogroup" aria-labelledby="lbl-neg" style="align-self:flex-start">${['RSS','Industrial'].map((n,i)=>`<input type="radio" name="f-neg" id="f-neg-${i}" value="${n}" ${e.negocio===n?'checked':''}><label for="f-neg-${i}">${n}</label>`).join('')}</div><div class="hint" id="h-neg"></div></div>
       <div class="fld"><label for="f-data">Data</label><input type="date" id="f-data" value="${esc(e.data||defaultDate())}"></div>
       <div class="fld full"><label for="f-dest">Destinador</label><select id="f-dest" required>${destOptions(e.destinador,'Escolha…')}</select></div>
       <div class="fld full"><label for="f-res">Resíduo / material</label><input id="f-res" list="dl-res" value="${esc(e.residuo||'')}" required><datalist id="dl-res"></datalist></div>
@@ -498,10 +527,12 @@ function renderLanc(){
     <div class="filters">
       <select id="flt-dest" aria-label="Filtrar destinador">${destOptions(S.f.dest,'Todos os destinadores')}</select>
       <select id="flt-res" aria-label="Filtrar resíduo"><option value="">Todos os resíduos</option>${resSet.map(r=>`<option ${r===S.f.res?'selected':''}>${esc(r)}</option>`).join('')}</select>
+      <select id="flt-neg" aria-label="Filtrar tipo de negócio">${[['','Todos os tipos de negócio'],['RSS','RSS'],['Industrial','Industrial'],['none','Sem tipo']].map(([v,t])=>`<option value="${v}" ${S.f.neg===v?'selected':''}>${t}</option>`).join('')}</select>
       <input id="flt-q" type="search" placeholder="Buscar MTR, gerador, placa…" value="${esc(S.f.q)}" aria-label="Buscar">
     </div>
-    ${lst.length?`<div class="tbl-wrap rtw" style="max-height:620px"><table class="rt"><thead><tr><th>Data</th><th>MTR</th><th>Destinador</th><th>Gerador</th><th class="hide-m">Origem</th><th>Resíduo</th><th>Placa</th><th class="num">kg</th><th class="num hide-m">R$/kg</th><th class="num">Valor</th></tr></thead><tbody>
-    ${lst.map(l=>{const t=tipoDe(l.destinador);return `<tr class="click" data-id="${esc(l._id)}"><td>${fmtData(l.data)}</td><td class="mono">${esc(l.mtr||'—')}</td><td class="full"><span class="pill ${t}">${esc(nomeDe(l.destinador))}</span></td><td>${esc(l.gerador)}</td><td class="hide-m">${esc(l.origem)}</td><td>${esc(l.residuo)}</td><td class="mono">${esc(l.placa)}</td><td class="num">${l.kg!=null&&l.kg!==''?N(l.kg):'—'}</td><td class="num hide-m">${l.valorFixo?'fechado':N(l.preco,3)}</td><td class="num strong-m">${t==='receita'?'+ ':''}${R(l.valor)}</td></tr>`}).join('')}
+    ${!S.readOnly&&lst.length&&(S.f.dest||S.f.res||S.f.q||S.f.neg)?`<div class="bulk" id="bulk"><span>Definir o tipo de negócio dos <b>${lst.length}</b> lançamento(s) filtrados:</span><button type="button" class="btn sm" data-lote="RSS">RSS</button><button type="button" class="btn sm" data-lote="Industrial">Industrial</button></div>`:''}
+    ${lst.length?`<div class="tbl-wrap rtw" style="max-height:620px"><table class="rt"><thead><tr><th>Data</th><th>MTR</th><th>Destinador</th><th>Negócio</th><th>Gerador</th><th class="hide-m">Origem</th><th>Resíduo</th><th>Placa</th><th class="num">kg</th><th class="num hide-m">R$/kg</th><th class="num">Valor</th></tr></thead><tbody>
+    ${lst.map(l=>{const t=tipoDe(l.destinador);return `<tr class="click" data-id="${esc(l._id)}"><td>${fmtData(l.data)}</td><td class="mono">${esc(l.mtr||'—')}</td><td class="full"><span class="pill ${t}">${esc(nomeDe(l.destinador))}</span></td><td>${negPill(l.negocio)}</td><td>${esc(l.gerador)}</td><td class="hide-m">${esc(l.origem)}</td><td>${esc(l.residuo)}</td><td class="mono">${esc(l.placa)}</td><td class="num">${l.kg!=null&&l.kg!==''?N(l.kg):'—'}</td><td class="num hide-m">${l.valorFixo?'fechado':N(l.preco,3)}</td><td class="num strong-m">${t==='receita'?'+ ':''}${R(l.valor)}</td></tr>`}).join('')}
     </tbody></table></div>`:`<div class="empty">${S.lanc.length?'Nenhum lançamento com esses filtros.':'Nenhum lançamento em '+esc(mesLbl(S.mes))+'. Use o formulário acima para lançar a primeira viagem.'}</div>`}
   </section>`;
   bindLancForm();
@@ -511,6 +542,11 @@ function bindLancForm(){
   const f=$('#f');
   $('#flt-dest').onchange=e=>{S.f.dest=e.target.value;renderLanc()};
   $('#flt-res').onchange=e=>{S.f.res=e.target.value;renderLanc()};
+  $('#flt-neg').onchange=e=>{S.f.neg=e.target.value;renderLanc()};
+  document.querySelectorAll('[data-lote]').forEach(b=>b.onclick=()=>{const neg=b.dataset.lote;const ids=lancFiltrados().map(l=>l._id);const bk=$('#bulk');
+    bk.innerHTML=`<span>Marcar <b>${ids.length}</b> lançamento(s) como <b>${esc(neg)}</b>?</span><button type="button" class="btn sm pri" id="lote-sim">Sim, marcar</button><button type="button" class="btn sm" id="lote-nao">Cancelar</button>`;
+    $('#lote-nao').onclick=()=>renderLanc();
+    $('#lote-sim').onclick=async()=>{$('#lote-sim').disabled=true;try{const r=await api('definirNegocioLote',{ids,negocio:neg});const set=new Set(ids);S.all.forEach(l=>{if(set.has(l._id))l.negocio=neg});recompute();toast(r.alterados+' lançamento(s) marcados como '+neg);renderLanc()}catch(er){falha(er);renderLanc()}}});
   $('#flt-q').oninput=e=>{S.f.q=e.target.value;clearTimeout(bindLancForm.h);bindLancForm.h=setTimeout(()=>{const p=e.target.selectionStart;renderLanc();const q=$('#flt-q');q.focus();q.setSelectionRange(p,p)},250)};
   $('#csv').onclick=baixarCsv;
   document.querySelectorAll('tr[data-id]').forEach(tr=>tr.onclick=()=>{S.edit={...S.lanc.find(l=>l._id===tr.dataset.id)};renderLanc();$('#form-panel').scrollIntoView({behavior:'smooth',block:'start'})});
@@ -527,7 +563,7 @@ function bindLancForm(){
     else if(!/^\d{12}$/.test(m)){h.className='hint warn';h.textContent=`O MTR costuma ter 12 dígitos (este tem ${m.replace(/\D/g,'').length})`}};
   fillRes();autoPreco();calc();chkMtr();
   $('#f-dest').onchange=()=>{fillRes();precoManual=false;autoPreco();calc()};
-  $('#f-res').oninput=()=>{precoManual=false;autoPreco();calc()};
+  $('#f-res').oninput=()=>{precoManual=false;autoPreco();calc();if(/SAÚDE|SAUDE/i.test($('#f-res').value)&&!document.querySelector('input[name="f-neg"]:checked')){$('#f-neg-0').checked=true;const h=$('#h-neg');h.className='hint';h.textContent='Marcado como RSS por ser resíduo de saúde. Troque se não for.'}};
   $('#f-preco').oninput=()=>{precoManual=true;calc()};
   $('#f-kg').oninput=calc;$('#f-vfix').oninput=calc;$('#f-mtr').oninput=chkMtr;
   $('#f-scan').onclick=()=>abrirLeitor(cod=>{$('#f-mtr').value=cod;chkMtr();const nx=$('#f-ger');if(nx&&!nx.value)nx.focus()});
@@ -536,8 +572,9 @@ function bindLancForm(){
     $('#del-yes').onclick=async()=>{try{await api('excluirLancamento',{id:S.edit._id});S.all=S.all.filter(l=>l._id!==S.edit._id);recompute();S.edit=null;toast('Lançamento excluído');renderLanc()}catch(err){falha(err)}}};
   f.onsubmit=async ev=>{ev.preventDefault();
     const dest=$('#f-dest').value;if(!dest){toast('Escolha o destinador');return}
+    const negEl=document.querySelector('input[name="f-neg"]:checked');if(!negEl){const h=$('#h-neg');h.className='hint crit';h.textContent='Escolha RSS ou Industrial.';$('#f-neg-0').focus();toast('Escolha o tipo de negócio');return}
     const data=$('#f-data').value;const fx=$('#f-vfix').value;
-    const doc={data,mes:data?data.slice(0,7):S.mes,mtr:$('#f-mtr').value.replace(/\s/g,''),ticket:$('#f-ticket').value.trim(),destinador:dest,
+    const doc={data,mes:data?data.slice(0,7):S.mes,mtr:$('#f-mtr').value.replace(/\s/g,''),ticket:$('#f-ticket').value.trim(),destinador:dest,negocio:negEl.value,
       gerador:$('#f-ger').value.trim().toUpperCase(),origem:$('#f-orig').value.trim().toUpperCase(),residuo:$('#f-res').value.trim().toUpperCase(),
       transportadora:$('#f-transp').value.trim().toUpperCase(),placa:$('#f-placa').value.replace(/[\s-]/g,'').toUpperCase(),
       kg:$('#f-kg').value===''?null:+$('#f-kg').value,preco:+$('#f-preco').value||0,valor:calc(),obs:$('#f-obs').value.trim(),atualizadoEm:new Date().toISOString()};
@@ -548,14 +585,14 @@ function bindLancForm(){
       S.all=S.all.filter(l=>l._id!==id);S.all.push({_id:id,...doc});recompute();
       const was=!!(S.edit&&S.edit._id);
       // mantém dados repetitivos para o próximo lançamento
-      S.edit=was?null:{data:doc.data,destinador:doc.destinador,residuo:doc.residuo,gerador:doc.gerador,origem:doc.origem,placa:doc.placa,transportadora:doc.transportadora,preco:doc.preco};
+      S.edit=was?null:{data:doc.data,negocio:doc.negocio,destinador:doc.destinador,residuo:doc.residuo,gerador:doc.gerador,origem:doc.origem,placa:doc.placa,transportadora:doc.transportadora,preco:doc.preco};
       toast(was?'Alterações salvas':(doc.mes!==S.mes?'Lançado em '+mesLbl(doc.mes):'Lançado'));renderLanc();if(!was){const m=$('#f-mtr');m&&m.focus()}
     }catch(err){btn.disabled=false;falha(err)}};
 }
 function falha(err){console.error(err);if(err&&err.erro==='sem_permissao'){S.readOnly=true;toast('Sua chave é só de leitura');render()}else toast((err&&err.mensagem)||'Não foi possível salvar. Verifique a internet e tente de novo.')}
 
 async function baixarCsv(){
-  const cols=['data','mtr','ticket','destinador','tipo','gerador','origem','residuo','transportadora','placa','kg','preco','valor','obs'];
+  const cols=['data','mtr','ticket','destinador','tipo','negocio','gerador','origem','residuo','transportadora','placa','kg','preco','valor','obs'];
   const rows=lancFiltrados().map(l=>cols.map(c=>{let v=c==='destinador'?nomeDe(l.destinador):c==='tipo'?tipoDe(l.destinador):l[c];
     if(typeof v==='number')v=String(v).replace('.',',');v=String(v??'');return /[;"\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v}).join(';'));
   const csv='﻿'+cols.join(';')+'\n'+rows.join('\n');
@@ -628,11 +665,12 @@ function render(){
   const ae=document.activeElement;if(ae&&ae.closest&&ae.closest('#main')&&/INPUT|SELECT|TEXTAREA/.test(ae.tagName)&&S.tab!=='painel'){render.pending=true;return}
   ({painel:renderPainel,lanc:renderLanc,frota:renderFrota,dest:renderDest,pend:renderPend,users:renderUsers})[S.tab]();
   document.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>setTab(b.dataset.go));
+  bindNeg();
 }
 document.addEventListener('focusout',()=>setTimeout(()=>{if(render.pending&&!(document.activeElement&&document.activeElement.closest('#main')&&/INPUT|SELECT|TEXTAREA/.test(document.activeElement.tagName))){render.pending=false;render()}},50));
 function setTab(t){if(t!=='frota')S.locDraft=null;S.tab=t;document.querySelectorAll('nav.tabs button').forEach(b=>b.setAttribute('aria-selected',b.dataset.tab===t));try{localStorage.setItem('cd-tab',t)}catch(e){}
   const ae=document.activeElement;if(ae&&ae.blur)ae.blur();render.pending=false;
-  ({painel:renderPainel,lanc:renderLanc,frota:renderFrota,dest:renderDest,pend:renderPend,users:renderUsers})[t]();document.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>setTab(b.dataset.go));scrollTo({top:0})}
+  ({painel:renderPainel,lanc:renderLanc,frota:renderFrota,dest:renderDest,pend:renderPend,users:renderUsers})[t]();document.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>setTab(b.dataset.go));bindNeg();scrollTo({top:0})}
 document.querySelectorAll('nav.tabs button').forEach(b=>b.onclick=()=>setTab(b.dataset.tab));
 
 /* ---------- dados (Google Planilhas via Apps Script) e login ---------- */

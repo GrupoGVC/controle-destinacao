@@ -26,7 +26,7 @@ const DIAS_SESSAO = 30;          // quanto tempo o aparelho fica conectado sem p
 
 const ABAS = {
   Lancamentos: ['id', 'data', 'mes', 'mtr', 'ticket', 'destinador', 'gerador', 'origem', 'residuo',
-                'transportadora', 'placa', 'kg', 'preco', 'valorFixo', 'valor', 'obs', 'atualizadoEm', 'atualizadoPor'],
+                'transportadora', 'placa', 'kg', 'preco', 'valorFixo', 'valor', 'obs', 'atualizadoEm', 'atualizadoPor', 'negocio'],
   Destinadores: ['id', 'nome', 'tipo', 'ativo'],
   Precos: ['destinador', 'residuo', 'preco'],
   Locacao: ['mes', 'tipo', 'placa', 'fornecedor', 'valor'],
@@ -41,6 +41,7 @@ const COLUNAS_TEXTO = {
   Usuarios: ['email', 'senhaHash', 'salt']
 };
 const NIVEIS = ['leitor', 'editor', 'admin'];
+const NEGOCIOS = ['RSS', 'Industrial']; // tipo de negócio do lançamento
 const MESES_JANELA = 6;
 
 /* ======================= MENU NA PLANILHA ======================= */
@@ -71,6 +72,10 @@ function configurar() {
       sh.getRange(2, cab.indexOf('kg') + 1, sh.getMaxRows() - 1, 1).setNumberFormat('#,##0.##');
       sh.getRange(2, cab.indexOf('preco') + 1, sh.getMaxRows() - 1, 1).setNumberFormat('0.000');
       ['valor', 'valorFixo'].forEach(function (c) { sh.getRange(2, cab.indexOf(c) + 1, sh.getMaxRows() - 1, 1).setNumberFormat('"R$" #,##0.00'); });
+    }
+    if (nome === 'Lancamentos') {
+      const rn = SpreadsheetApp.newDataValidation().requireValueInList(NEGOCIOS, true).setAllowInvalid(false).build();
+      sh.getRange(2, cab.indexOf('negocio') + 1, sh.getMaxRows() - 1, 1).setDataValidation(rn);
     }
     if (nome === 'Usuarios') {
       const regra = SpreadsheetApp.newDataValidation().requireValueInList(NIVEIS, true).build();
@@ -141,6 +146,7 @@ function doPost(e) {
       switch (body.acao) {
         case 'salvarLancamento': return json_(salvarLancamento_(body.lanc, u));
         case 'excluirLancamento': return json_(excluirLancamento_(body.id, u));
+        case 'definirNegocioLote': return json_(definirNegocioLote_(body.ids, body.negocio, u));
         case 'salvarLocacao': return json_(salvarLocacao_(body.mes, body.veiculos || [], u));
         case 'salvarDestinador': return json_(salvarDestinador_(body.dest, u));
         case 'listarUsuarios': return json_(listarUsuarios_());
@@ -343,7 +349,7 @@ function normLanc_(r) {
     mtr: String(r.mtr || '').trim(), ticket: String(r.ticket || '').trim(), destinador: String(r.destinador || '').trim(),
     gerador: String(r.gerador || ''), origem: String(r.origem || ''), residuo: String(r.residuo || '').toUpperCase(),
     transportadora: String(r.transportadora || ''), placa: String(r.placa || '').toUpperCase(),
-    kg: kg, preco: preco, valor: valor, obs: String(r.obs || ''), atualizadoPor: String(r.atualizadoPor || '') };
+    kg: kg, preco: preco, valor: valor, obs: String(r.obs || ''), atualizadoPor: String(r.atualizadoPor || ''), negocio: normNegocio_(r.negocio) };
   if (fixo !== null) o.valorFixo = fixo;
   return o;
 }
@@ -352,6 +358,7 @@ function normLanc_(r) {
 function salvarLancamento_(l, u) {
   if (!l || !l.id) return { ok: false, erro: 'dados_invalidos', mensagem: 'Lançamento sem identificador.' };
   l.atualizadoPor = u.nome;
+  l.negocio = normNegocio_(l.negocio);
   const sh = aba_('Lancamentos'); const cab = ABAS.Lancamentos;
   const linha = cab.map(function (c) {
     if (c === 'data') return l.data ? paraData_(l.data) : '';
@@ -364,6 +371,30 @@ function salvarLancamento_(l, u) {
   else sh.appendRow(linha);
   log_(idx > 0 ? 'alterou lançamento' : 'novo lançamento', l.id, u.nome, (l.mtr || 's/ MTR') + ' · ' + l.destinador + ' · ' + (l.kg || 0) + ' kg · R$ ' + l.valor);
   return { ok: true };
+}
+
+function normNegocio_(v) {
+  const t = String(v || '').trim().toUpperCase();
+  if (t === 'RSS') return 'RSS';
+  if (t.indexOf('IND') === 0) return 'Industrial';
+  return '';
+}
+
+/** Define o tipo de negócio de vários lançamentos de uma vez (classificação do histórico). */
+function definirNegocioLote_(ids, negocio, u) {
+  negocio = normNegocio_(negocio);
+  if (!negocio) return { ok: false, erro: 'dados_invalidos', mensagem: 'Escolha RSS ou Industrial.' };
+  if (!ids || !ids.length) return { ok: true, alterados: 0 };
+  const sh = aba_('Lancamentos'); const n = sh.getLastRow(); if (n < 2) return { ok: true, alterados: 0 };
+  const cab = ABAS.Lancamentos; const col = cab.indexOf('negocio') + 1;
+  const quer = {}; ids.forEach(function (i) { quer[String(i)] = true; });
+  const idsPlan = sh.getRange(2, 1, n - 1, 1).getValues();
+  const atual = sh.getRange(2, col, n - 1, 1).getValues();
+  let alt = 0;
+  for (let i = 0; i < idsPlan.length; i++) if (quer[String(idsPlan[i][0]).trim()]) { atual[i][0] = negocio; alt++; }
+  sh.getRange(2, col, n - 1, 1).setValues(atual);
+  log_('classificou tipo de negócio', alt + ' lançamento(s)', u.nome, negocio);
+  return { ok: true, alterados: alt };
 }
 
 function excluirLancamento_(id, u) {

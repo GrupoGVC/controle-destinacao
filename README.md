@@ -78,7 +78,7 @@ Não há mês para duplicar: tudo fica na mesma planilha, e o app separa por mê
 | Quando | O que fazer |
 |---|---|
 | Virada do mês | Na aba **Locação de veículos**, avance para o mês novo, clique em **Copiar frota do mês anterior**, ajuste o que mudou e salve. |
-| A cada viagem | Em **Lançamentos**, preencha um registro por MTR. No celular, toque no botão ao lado do campo Nº MTR para ler o código de barras com a câmera (ou de uma foto). O preço vem da tabela do destinador. Use *Valor fechado* quando o preço não for por kg. |
+| A cada viagem | Em **Lançamentos**, preencha um registro por MTR, marcando o **tipo de negócio** (RSS ou Industrial). No celular, toque no botão ao lado do campo Nº MTR para ler o código de barras com a câmera (ou de uma foto). O preço vem da tabela do destinador. Use *Valor fechado* quando o preço não for por kg. |
 | Fechamento | Abra **Conferência** e resolva tudo que estiver marcado como *Corrigir*. Baixe o CSV do mês para o financeiro. |
 | Preço mudou | Atualize em **Destinadores e preços**. Vale para os próximos lançamentos; os antigos mantêm o preço da época. |
 
