@@ -13,7 +13,7 @@ Não há mês para duplicar: tudo fica na mesma planilha, e o app separa por mê
 
 ## 1. Criar a planilha (5 min)
 
-1. No Google Drive, clique em **Novo › Upload de arquivo** e envie `dados-iniciais/Controle_Destinacao_Base.xlsx`. Esse arquivo já traz janeiro a outubro de 2026: 1.409 lançamentos, 23 destinadores com a tabela de preços e a locação de cada mês. A aba "Removidos na importacao" lista as 58 linhas duplicadas que ficaram de fora.
+1. No Google Drive, clique em **Novo › Upload de arquivo** e envie o arquivo `Controle_Destinacao_Base.xlsx` (fica fora do repositório, porque contém dados da empresa). Esse arquivo já traz janeiro a outubro de 2026: 1.409 lançamentos, 23 destinadores com a tabela de preços e a locação de cada mês. A aba "Removidos na importacao" lista as 58 linhas duplicadas que ficaram de fora.
 2. Abra o arquivo e vá em **Arquivo › Salvar como Planilhas Google**. A partir daqui, use **só a cópia em formato Google**. O .xlsx enviado pode ir para a lixeira.
 3. Renomeie a planilha para algo como **Controle de Destinação – Base**.
 
@@ -44,7 +44,7 @@ Não há mês para duplicar: tudo fica na mesma planilha, e o app separa por mê
 ## 4. Colocar o app no GitHub Pages (5 min)
 
 1. No GitHub, crie um repositório, por exemplo `controle-destinacao`. No plano gratuito, o GitHub Pages exige repositório **público**. Não há problema: nenhum dado fica no repositório, só a tela. Sem login, ninguém lê nem altera nada.
-2. Envie os arquivos desta pasta (**Add file › Upload files**): `index.html`, `config.js`, `README.md` e as pastas `img/` (logos), `apps-script/` e `dados-iniciais/`.
+2. Envie os arquivos desta pasta (**Add file › Upload files**): `index.html`, `config.js`, `README.md` e as pastas `img/` (logos) e `apps-script/`. A planilha base **não** vai para o repositório: ele é público.
 3. Edite o `config.js` e cole o URL do passo 3 entre as aspas:
    ```js
    window.CONFIG = { API_URL: "https://script.google.com/macros/s/XXXX/exec" };
@@ -78,7 +78,7 @@ Não há mês para duplicar: tudo fica na mesma planilha, e o app separa por mê
 | Quando | O que fazer |
 |---|---|
 | Virada do mês | Na aba **Locação de veículos**, avance para o mês novo, clique em **Copiar frota do mês anterior**, ajuste o que mudou e salve. |
-| A cada viagem | Em **Lançamentos**, preencha um registro por MTR. O preço vem da tabela do destinador. Use *Valor fechado* quando o preço não for por kg. |
+| A cada viagem | Em **Lançamentos**, preencha um registro por MTR. No celular, toque no botão ao lado do campo Nº MTR para ler o código de barras com a câmera (ou de uma foto). O preço vem da tabela do destinador. Use *Valor fechado* quando o preço não for por kg. |
 | Fechamento | Abra **Conferência** e resolva tudo que estiver marcado como *Corrigir*. Baixe o CSV do mês para o financeiro. |
 | Preço mudou | Atualize em **Destinadores e preços**. Vale para os próximos lançamentos; os antigos mantêm o preço da época. |
 
@@ -106,5 +106,4 @@ index.html                 app (HTML + CSS + JS, sem dependências)
 config.js                  endereço da API
 img/                       logos Retec e Grupo GVC
 apps-script/Codigo.gs      API da planilha (colar no Apps Script)
-dados-iniciais/…xlsx       base com jan–out/2026 para importar no Drive
 ```

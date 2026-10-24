@@ -1,9 +1,0 @@
-Chave de LEITURA: le-22cbb2b3a42b4694
-Chave de EDIÇÃO: ed-32bf8bc284f64106
-
-
-ID de implementação:
-AKfycbyQnvSYWMADb9h8UaHICxAClW2U223T0MJo5FEAqVQs-boBG3Y_5KlqevSJfHYM4Jz2OQ
-
-App para a Web: URL
-https://script.google.com/macros/s/AKfycbyQnvSYWMADb9h8UaHICxAClW2U223T0MJo5FEAqVQs-boBG3Y_5KlqevSJfHYM4Jz2OQ/exec

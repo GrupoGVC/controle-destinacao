@@ -154,6 +154,14 @@ td input,td select{padding:5px 8px;font-size:13px}
 .kpis{}@media (max-width:900px){.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media (max-width:560px){.kpis{grid-template-columns:1fr}.month .lbl{min-width:120px;font-size:15px}.kpi .v{font-size:23px}.bar{grid-template-columns:minmax(80px,38%) 1fr auto}}
 
+
+.inp-btn{display:flex;gap:6px}.inp-btn input{flex:1;min-width:0}
+.scan-btn{padding:0 10px!important;flex-shrink:0}
+.scan-ov{position:fixed;inset:0;z-index:40;background:rgba(8,14,11,.72);display:flex;align-items:center;justify-content:center;
+  padding:max(16px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(16px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+.scan-box{background:var(--surface);border-radius:12px;padding:16px;width:min(100%,480px);display:flex;flex-direction:column;gap:12px}
+#scan-cam{width:100%;min-height:220px;background:#000;border-radius:8px;overflow:hidden}
+#scan-cam video{width:100%!important;display:block;border-radius:8px}
 /* ---------- celular ---------- */
 nav.tabs .ic,nav.tabs .t-short{display:none}
 .rt td.full,.rt td.strong-m{}
@@ -240,6 +248,15 @@ nav.tabs .ic,nav.tabs .t-short{display:none}
   <div class="notice">Carregando os lançamentos do mês…</div>
 </main>
 <div class="tip" id="tip" hidden></div>
+<div class="scan-ov" id="scan-ov" hidden role="dialog" aria-modal="true" aria-label="Escanear MTR">
+  <div class="scan-box">
+    <div class="row" style="justify-content:space-between"><b>Escanear MTR</b><button type="button" class="btn sm" id="scan-fechar">Fechar</button></div>
+    <div id="scan-cam"></div>
+    <p class="sub" id="scan-msg" style="margin:0">Aponte a câmera para o código de barras do MTR, com boa luz e o código inteiro na tela.</p>
+    <label class="btn" for="scan-foto" style="justify-content:center">Ler de uma foto</label>
+    <input type="file" id="scan-foto" accept="image/*" capture="environment" hidden>
+  </div>
+</div>
 <div class="toast" id="toast" hidden></div>
 
 <script>
@@ -264,6 +281,46 @@ const S={db:null,mes:null,dest:{},lanc:[],loc:null,locLoaded:false,trend:{},tab:
 function toast(msg){const t=$('#toast');t.textContent=msg;t.hidden=false;clearTimeout(toast.h);toast.h=setTimeout(()=>t.hidden=true,2600)}
 function setSync(on,txt){const s=$('#sync');s.classList.toggle('on',on);s.querySelector('span').textContent=txt}
 
+
+/* ---------- leitor de código de barras (MTR) ---------- */
+let leitorLib=null,leitor=null,leitorCb=null;
+function carregarLeitorLib(){
+  if(window.Html5Qrcode)return Promise.resolve();
+  if(leitorLib)return leitorLib;
+  leitorLib=new Promise((ok,erro)=>{const sc=document.createElement('script');sc.src='https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js';
+    sc.onload=ok;sc.onerror=()=>{leitorLib=null;erro(new Error('lib'))};document.head.appendChild(sc)});
+  return leitorLib;
+}
+function limparCodigo(txt){
+  const t=String(txt||'').trim();
+  const m12=t.match(/\d{12}/);if(m12)return m12[0];      // MTR padrão SINIR: 12 dígitos
+  const d=t.replace(/\D/g,'');return d||t;
+}
+async function abrirLeitor(cb){
+  leitorCb=cb;const ov=$('#scan-ov');ov.hidden=false;$('#scan-msg').textContent='Abrindo a câmera…';
+  try{await carregarLeitorLib()}catch(e){$('#scan-msg').textContent='Não consegui carregar o leitor. Verifique a internet.';return}
+  const F=window.Html5QrcodeSupportedFormats;
+  const formatos=[F.CODE_128,F.CODE_39,F.ITF,F.EAN_13,F.CODABAR,F.QR_CODE,F.DATA_MATRIX,F.PDF_417].filter(x=>x!==undefined);
+  try{
+    leitor=new Html5Qrcode('scan-cam',{formatsToSupport:formatos,useBarCodeDetectorIfSupported:true,verbose:false});
+    await leitor.start({facingMode:'environment'},{fps:12,qrbox:(w,h)=>({width:Math.floor(w*.9),height:Math.floor(Math.min(h*.6,w*.5))})},
+      txt=>leitorLeu(txt),()=>{});
+    $('#scan-msg').textContent='Aponte a câmera para o código de barras do MTR, com boa luz e o código inteiro na tela.';
+  }catch(e){
+    $('#scan-msg').textContent='Não consegui abrir a câmera. Libere o acesso à câmera para este site nas configurações do navegador, ou use "Ler de uma foto".';
+  }
+}
+function leitorLeu(txt){const cod=limparCodigo(txt);try{navigator.vibrate&&navigator.vibrate(80)}catch(e){}
+  fecharLeitor();if(leitorCb)leitorCb(cod);toast('MTR lido: '+cod)}
+async function fecharLeitor(){$('#scan-ov').hidden=true;const l=leitor;leitor=null;if(l){try{if(l.isScanning)await l.stop()}catch(e){}try{l.clear()}catch(e){}}}
+$('#scan-fechar').onclick=fecharLeitor;
+$('#scan-ov').addEventListener('click',e=>{if(e.target.id==='scan-ov')fecharLeitor()});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('#scan-ov').hidden)fecharLeitor()});
+$('#scan-foto').onchange=async e=>{const f=e.target.files&&e.target.files[0];e.target.value='';if(!f)return;
+  $('#scan-msg').textContent='Lendo a foto…';
+  try{await carregarLeitorLib();if(leitor&&leitor.isScanning){try{await leitor.stop()}catch(x){}}
+    const tmp=new Html5Qrcode('scan-cam',{verbose:false});const txt=await tmp.scanFile(f,false);try{tmp.clear()}catch(x){}leitor=null;leitorLeu(txt)}
+  catch(er){$('#scan-msg').textContent='Não encontrei um código nessa foto. Tente mais de perto, com o código reto e bem iluminado.'}};
 /* ---------- rótulos das tabelas no celular ---------- */
 function rotularTabelas(){document.querySelectorAll('table.rt').forEach(t=>{const hs=[...t.querySelectorAll('thead th')].map(th=>th.textContent.trim());
   t.querySelectorAll('tbody tr,tfoot tr').forEach(tr=>{let i=0;[...tr.children].forEach(td=>{const sp=+td.colSpan||1;if(!td.hasAttribute('data-label'))td.setAttribute('data-label',sp>1?'':(hs[i]||''));i+=sp})})})}
@@ -419,7 +476,7 @@ function renderLanc(){
       <div class="fld"><label for="f-data">Data</label><input type="date" id="f-data" value="${esc(e.data||defaultDate())}"></div>
       <div class="fld full"><label for="f-dest">Destinador</label><select id="f-dest" required>${destOptions(e.destinador,'Escolha…')}</select></div>
       <div class="fld full"><label for="f-res">Resíduo / material</label><input id="f-res" list="dl-res" value="${esc(e.residuo||'')}" required><datalist id="dl-res"></datalist></div>
-      <div class="fld"><label for="f-mtr">Nº MTR</label><input id="f-mtr" class="mono" inputmode="numeric" value="${esc(e.mtr||'')}"><div class="hint" id="h-mtr"></div></div>
+      <div class="fld"><label for="f-mtr">Nº MTR</label><div class="inp-btn"><input id="f-mtr" class="mono" inputmode="numeric" value="${esc(e.mtr||'')}"><button type="button" class="btn scan-btn" id="f-scan" aria-label="Escanear código de barras do MTR" title="Escanear código do MTR"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7V5a2 2 0 012-2h2M17 3h2a2 2 0 012 2v2M21 17v2a2 2 0 01-2 2h-2M7 21H5a2 2 0 01-2-2v-2M7 8v8M10 8v8M13 8v8M17 8v8"/></svg></button></div><div class="hint" id="h-mtr"></div></div>
       <div class="fld"><label for="f-ticket">Ticket (opcional)</label><input id="f-ticket" class="mono" value="${esc(e.ticket||'')}"></div>
       <div class="fld full"><label for="f-ger">Gerador</label><input id="f-ger" list="dl-ger" value="${esc(e.gerador||'')}"><datalist id="dl-ger">${geradores.map(g=>`<option value="${esc(g)}">`).join('')}</datalist></div>
       <div class="fld full"><label for="f-orig">Local de origem</label><input id="f-orig" list="dl-orig" value="${esc(e.origem||'')}"><datalist id="dl-orig">${origens.map(g=>`<option value="${esc(g)}">`).join('')}</datalist></div>
@@ -473,6 +530,7 @@ function bindLancForm(){
   $('#f-res').oninput=()=>{precoManual=false;autoPreco();calc()};
   $('#f-preco').oninput=()=>{precoManual=true;calc()};
   $('#f-kg').oninput=calc;$('#f-vfix').oninput=calc;$('#f-mtr').oninput=chkMtr;
+  $('#f-scan').onclick=()=>abrirLeitor(cod=>{$('#f-mtr').value=cod;chkMtr();const nx=$('#f-ger');if(nx&&!nx.value)nx.focus()});
   if($('#f-del'))$('#f-del').onclick=()=>{$('#del-zone').innerHTML=`<span class="confirm">Excluir este lançamento? <button type="button" class="btn sm danger" id="del-yes">Sim, excluir</button><button type="button" class="btn sm" id="del-no">Não</button></span>`;
     $('#del-no').onclick=()=>renderLanc();
     $('#del-yes').onclick=async()=>{try{await api('excluirLancamento',{id:S.edit._id});S.all=S.all.filter(l=>l._id!==S.edit._id);recompute();S.edit=null;toast('Lançamento excluído');renderLanc()}catch(err){falha(err)}}};
