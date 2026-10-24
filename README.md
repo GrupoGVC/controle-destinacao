@@ -73,6 +73,21 @@ Não há mês para duplicar: tudo fica na mesma planilha, e o app separa por mê
 
 ---
 
+## Publicação automática do Apps Script (opcional, configurar uma vez)
+
+Com isso, toda alteração em `apps-script/` enviada ao GitHub é publicada sozinha no Apps Script, na mesma implementação, sem colar código nem trocar o URL `/exec`. Quem faz isso é o workflow `.github/workflows/publicar-apps-script.yml`.
+
+1. Ative a API: abra [script.google.com/home/usersettings](https://script.google.com/home/usersettings) com a conta dona da planilha e ligue **API do Google Apps Script**.
+2. Gere a autorização num computador com [Node.js](https://nodejs.org) instalado. No terminal (Prompt de Comando), rode `npx @google/clasp@2.4.2 login`, entre com a conta dona da planilha e clique em **Permitir**. Isso cria o arquivo `.clasprc.json` na sua pasta de usuário (no Windows, `C:\Users\SEU-USUARIO\.clasprc.json`). Abra o arquivo com o Bloco de Notas e copie todo o conteúdo.
+3. Pegue o **ID do script**: no Apps Script, clique na engrenagem (**Configurações do projeto**) e copie o **ID do script**.
+4. No GitHub, abra **Settings › Secrets and variables › Actions › New repository secret** e crie três segredos:
+   - `CLASPRC_JSON`: o conteúdo do `.clasprc.json`
+   - `APPS_SCRIPT_ID`: o ID do script
+   - `APPS_SCRIPT_DEPLOYMENT_ID`: o ID da implementação, que é o trecho entre `/s/` e `/exec` no endereço da API
+5. Teste em **Actions › Publicar Apps Script › Run workflow**. Em 1 minuto deve aparecer um ✓ verde.
+
+Os segredos ficam criptografados no GitHub e não aparecem para quem vê o repositório. Para cortar o acesso, apague o segredo `CLASPRC_JSON` ou remova o acesso do "clasp" em [myaccount.google.com/permissions](https://myaccount.google.com/permissions).
+
 ## Rotina do mês
 
 | Quando | O que fazer |

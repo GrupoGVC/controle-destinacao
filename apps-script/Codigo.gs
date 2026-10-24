@@ -308,6 +308,7 @@ function resetarSenha_(email, quem) {
 
 /* ======================= LEITURA ======================= */
 function dados_(mes, u) {
+  garantirCabecalho_('Lancamentos');
   const lanc = ler_('Lancamentos').map(normLanc_).filter(function (l) { return l.id; });
   let ultimo = '';
   lanc.forEach(function (l) { if (l.mes > ultimo) ultimo = l.mes; });
@@ -356,6 +357,7 @@ function normLanc_(r) {
 
 /* ======================= ESCRITA ======================= */
 function salvarLancamento_(l, u) {
+  garantirCabecalho_('Lancamentos');
   if (!l || !l.id) return { ok: false, erro: 'dados_invalidos', mensagem: 'Lançamento sem identificador.' };
   l.atualizadoPor = u.nome;
   l.negocio = normNegocio_(l.negocio);
@@ -438,6 +440,17 @@ function salvarDestinador_(d, u) {
 }
 
 /* ======================= UTILITÁRIOS ======================= */
+/** Completa colunas novas na linha 1 (quando uma versão nova do script acrescenta campos), sem precisar rodar configurar(). */
+function garantirCabecalho_(nome) {
+  const sh = aba_(nome); const cab = ABAS[nome];
+  const atual = sh.getRange(1, 1, 1, cab.length).getValues()[0];
+  for (let i = 0; i < cab.length; i++) {
+    if (String(atual[i]).trim() === cab[i]) continue;
+    if (String(atual[i]).trim() !== '') return; // cabeçalho diferente do esperado: não mexe, configurar() resolve
+    sh.getRange(1, i + 1).setValue(cab[i]).setFontWeight('bold').setBackground('#dcefe6');
+  }
+}
+
 function aba_(nome) {
   const sh = SpreadsheetApp.getActive().getSheetByName(nome);
   if (!sh) throw new Error('A aba "' + nome + '" não existe. Rode configurar() no Apps Script.');
